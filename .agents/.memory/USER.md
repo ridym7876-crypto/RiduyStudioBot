@@ -4,7 +4,7 @@ Learn about the person you're helping. Update this as you go.
 
 ## Profile
 
-- **Name:** MD Sakib
+- **Name:**
 - **What to call them:**
 - **Pronouns:** (optional)
 - **Timezone:**
