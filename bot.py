@@ -1,7 +1,7 @@
 import os
 import asyncio
-import requests
 import logging
+import aiohttp
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     Application, CommandHandler, MessageHandler,
@@ -12,14 +12,14 @@ from telegram.ext import (
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 HF_API_KEY = os.environ.get("HUGGINGFACE_API_KEY", "")
 
-HF_HEADERS = {"Authorization": f"Bearer {HF_API_KEY}"}
+HF_HEADERS = {
+    "Authorization": f"Bearer {HF_API_KEY}",
+    "Content-Type": "application/json"
+}
 
 # Hugging Face models
-MODELS = {
-    "text_to_image": "stabilityai/stable-diffusion-2-1",
-    "image_to_video": "stabilityai/stable-video-diffusion-img2vid",
-    "animation": "guoyww/animatediff-motion-adapter-v1-5-2",
-}
+IMAGE_MODEL = "stabilityai/stable-diffusion-xl-base-1.0"
+VIDEO_MODEL = "damo-vilab/text-to-video-ms-1.7b"
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -27,18 +27,57 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# ─── HF API (async) ───────────────────────────────────────────────────────────
+async def hf_generate_image(prompt: str):
+    url = f"https://api-inference.huggingface.co/models/{IMAGE_MODEL}"
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, headers=HF_HEADERS, json={"inputs": prompt}, timeout=aiohttp.ClientTimeout(total=120)) as resp:
+                if resp.status == 200:
+                    ct = resp.headers.get("content-type", "")
+                    if "image" in ct or "octet" in ct:
+                        return await resp.read(), None
+                    else:
+                        text = await resp.text()
+                        return None, f"Unexpected content: {ct}"
+                elif resp.status == 503:
+                    return None, "loading"
+                else:
+                    text = await resp.text()
+                    return None, f"Error {resp.status}: {text[:100]}"
+    except Exception as e:
+        return None, str(e)
+
+async def hf_generate_video(prompt: str):
+    url = f"https://api-inference.huggingface.co/models/{VIDEO_MODEL}"
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, headers=HF_HEADERS, json={"inputs": prompt}, timeout=aiohttp.ClientTimeout(total=180)) as resp:
+                if resp.status == 200:
+                    data = await resp.read()
+                    if len(data) > 1000:
+                        return data, resp.headers.get("content-type", "video/mp4"), None
+                    return None, None, "Empty response"
+                elif resp.status == 503:
+                    return None, None, "loading"
+                else:
+                    text = await resp.text()
+                    return None, None, f"Error {resp.status}: {text[:100]}"
+    except Exception as e:
+        return None, None, str(e)
+
 # ─── /start ───────────────────────────────────────────────────────────────────
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
         [InlineKeyboardButton("🎨 ইমেজ তৈরি করো", callback_data="gen_image")],
-        [InlineKeyboardButton("🎬 ভিডিও/এনিমেশন তৈরি করো", callback_data="gen_video")],
+        [InlineKeyboardButton("🎬 ভিডিও তৈরি করো", callback_data="gen_video")],
         [InlineKeyboardButton("ℹ️ সাহায্য", callback_data="help")],
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text(
         "👋 *RiduyStudio Bot*-এ স্বাগতম!\n\n"
-        "আমি Hugging Face AI দিয়ে ইমেজ ও ভিডিও/এনিমেশন তৈরি করতে পারি।\n\n"
-        "নিচের অপশন বেছে নিন:",
+        "🎨 AI দিয়ে ইমেজ ও ভিডিও তৈরি করুন।\n\n"
+        "নিচের অপশন বেছে নিন বা সরাসরি কমান্ড লিখুন:",
         parse_mode="Markdown",
         reply_markup=reply_markup
     )
@@ -48,8 +87,8 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "📖 *কমান্ড লিস্ট:*\n\n"
         "/start — শুরু করুন\n"
-        "/image [প্রম্পট] — AI দিয়ে ইমেজ তৈরি\n"
-        "/video [প্রম্পট] — AI দিয়ে ভিডিও/এনিমেশন তৈরি\n"
+        "/image `<প্রম্পট>` — AI দিয়ে ইমেজ তৈরি\n"
+        "/video `<প্রম্পট>` — AI দিয়ে ভিডিও তৈরি\n"
         "/help — সাহায্য\n\n"
         "উদাহরণ:\n"
         "`/image a beautiful sunset over the ocean`\n"
@@ -57,7 +96,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         parse_mode="Markdown"
     )
 
-# ─── Image Generation ─────────────────────────────────────────────────────────
+# ─── /image ───────────────────────────────────────────────────────────────────
 async def generate_image(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not context.args:
         await update.message.reply_text(
@@ -67,36 +106,27 @@ async def generate_image(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     prompt = " ".join(context.args)
-    msg = await update.message.reply_text(f"🎨 ইমেজ তৈরি হচ্ছে...\nপ্রম্পট: *{prompt}*", parse_mode="Markdown")
+    msg = await update.message.reply_text(
+        f"🎨 ইমেজ তৈরি হচ্ছে...\nপ্রম্পট: *{prompt}*\n\n⏳ একটু অপেক্ষা করুন...",
+        parse_mode="Markdown"
+    )
 
-    try:
-        api_url = f"https://api-inference.huggingface.co/models/{MODELS['text_to_image']}"
-        response = requests.post(
-            api_url,
-            headers=HF_HEADERS,
-            json={"inputs": prompt},
-            timeout=120
+    data, error = await hf_generate_image(prompt)
+
+    if data:
+        await context.bot.send_photo(
+            chat_id=update.effective_chat.id,
+            photo=data,
+            caption=f"✅ ইমেজ তৈরি হয়েছে!\nপ্রম্পট: {prompt}"
         )
+        await msg.delete()
+    elif error == "loading":
+        await msg.edit_text("⏳ মডেল লোড হচ্ছে। ৩০ সেকেন্ড পর `/image " + prompt + "` আবার চেষ্টা করুন।", parse_mode="Markdown")
+    else:
+        logger.error(f"Image error: {error}")
+        await msg.edit_text(f"❌ ইমেজ তৈরি হয়নি। আবার চেষ্টা করুন।")
 
-        if response.status_code == 200 and response.headers.get("content-type", "").startswith("image"):
-            await context.bot.send_photo(
-                chat_id=update.effective_chat.id,
-                photo=response.content,
-                caption=f"✅ ইমেজ তৈরি হয়েছে!\nপ্রম্পট: {prompt}"
-            )
-            await msg.delete()
-        elif response.status_code == 503:
-            await msg.edit_text("⏳ মডেল লোড হচ্ছে, ৩০ সেকেন্ড পর আবার চেষ্টা করুন।")
-        else:
-            error = response.json() if response.content else {}
-            logger.error(f"Image error: {response.status_code} - {error}")
-            await msg.edit_text(f"❌ ইমেজ তৈরি হয়নি। আবার চেষ্টা করুন।\nError: {response.status_code}")
-
-    except Exception as e:
-        logger.error(f"Image generation error: {e}")
-        await msg.edit_text("❌ কোনো সমস্যা হয়েছে। আবার চেষ্টা করুন।")
-
-# ─── Video/Animation Generation ───────────────────────────────────────────────
+# ─── /video ───────────────────────────────────────────────────────────────────
 async def generate_video(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not context.args:
         await update.message.reply_text(
@@ -107,47 +137,40 @@ async def generate_video(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     prompt = " ".join(context.args)
     msg = await update.message.reply_text(
-        f"🎬 ভিডিও/এনিমেশন তৈরি হচ্ছে...\nপ্রম্পট: *{prompt}*\n\n⏳ এটি একটু সময় নেবে...",
+        f"🎬 ভিডিও তৈরি হচ্ছে...\nপ্রম্পট: *{prompt}*\n\n⏳ ১-২ মিনিট সময় নিতে পারে...",
         parse_mode="Markdown"
     )
 
-    try:
-        # Use AnimateDiff for text-to-animation
-        api_url = "https://api-inference.huggingface.co/models/damo-vilab/text-to-video-ms-1.7b"
-        response = requests.post(
-            api_url,
-            headers=HF_HEADERS,
-            json={"inputs": prompt},
-            timeout=180
-        )
+    data, content_type, error = await hf_generate_video(prompt)
 
-        if response.status_code == 200:
-            content_type = response.headers.get("content-type", "")
-            if "video" in content_type or "gif" in content_type or len(response.content) > 1000:
-                # Save temp file
-                ext = "mp4" if "video" in content_type else "gif"
-                file_path = f"/tmp/video_{update.effective_user.id}.{ext}"
-                with open(file_path, "wb") as f:
-                    f.write(response.content)
+    if data:
+        ext = "gif" if "gif" in (content_type or "") else "mp4"
+        file_path = f"/tmp/video_{update.effective_user.id}.{ext}"
+        with open(file_path, "wb") as f:
+            f.write(data)
 
-                await context.bot.send_video(
-                    chat_id=update.effective_chat.id,
-                    video=open(file_path, "rb"),
-                    caption=f"✅ ভিডিও তৈরি হয়েছে!\nপ্রম্পট: {prompt}"
-                )
-                await msg.delete()
-                os.remove(file_path)
-            else:
-                await msg.edit_text("❌ ভিডিও ফরম্যাট সঠিক নয়। আবার চেষ্টা করুন।")
-        elif response.status_code == 503:
-            await msg.edit_text("⏳ মডেল লোড হচ্ছে, ১ মিনিট পর আবার চেষ্টা করুন।")
-        else:
-            logger.error(f"Video error: {response.status_code}")
-            await msg.edit_text(f"❌ ভিডিও তৈরি হয়নি। Error: {response.status_code}")
+        try:
+            await context.bot.send_video(
+                chat_id=update.effective_chat.id,
+                video=open(file_path, "rb"),
+                caption=f"✅ ভিডিও তৈরি হয়েছে!\nপ্রম্পট: {prompt}"
+            )
+        except Exception:
+            await context.bot.send_document(
+                chat_id=update.effective_chat.id,
+                document=open(file_path, "rb"),
+                filename=f"video.{ext}",
+                caption=f"✅ ভিডিও তৈরি হয়েছে!\nপ্রম্পট: {prompt}"
+            )
 
-    except Exception as e:
-        logger.error(f"Video generation error: {e}")
-        await msg.edit_text("❌ কোনো সমস্যা হয়েছে। আবার চেষ্টা করুন।")
+        await msg.delete()
+        if os.path.exists(file_path):
+            os.remove(file_path)
+    elif error == "loading":
+        await msg.edit_text("⏳ মডেল লোড হচ্ছে। ১ মিনিট পর `/video " + prompt + "` আবার চেষ্টা করুন।", parse_mode="Markdown")
+    else:
+        logger.error(f"Video error: {error}")
+        await msg.edit_text("❌ ভিডিও তৈরি হয়নি। আবার চেষ্টা করুন।")
 
 # ─── Callback Handler ─────────────────────────────────────────────────────────
 async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -161,7 +184,7 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
     elif query.data == "gen_video":
         await query.edit_message_text(
-            "🎬 ভিডিও/এনিমেশন তৈরি করতে লিখুন:\n`/video আপনার প্রম্পট`\n\nউদাহরণ:\n`/video a cat walking in the rain`",
+            "🎬 ভিডিও তৈরি করতে লিখুন:\n`/video আপনার প্রম্পট`\n\nউদাহরণ:\n`/video a cat walking in the rain`",
             parse_mode="Markdown"
         )
     elif query.data == "help":
@@ -169,12 +192,12 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "📖 *কমান্ড লিস্ট:*\n\n"
             "/start — শুরু করুন\n"
             "/image [প্রম্পট] — AI দিয়ে ইমেজ তৈরি\n"
-            "/video [প্রম্পট] — AI দিয়ে ভিডিও/এনিমেশন তৈরি\n"
+            "/video [প্রম্পট] — AI দিয়ে ভিডিও তৈরি\n"
             "/help — সাহায্য",
             parse_mode="Markdown"
         )
 
-# ─── Unknown messages ─────────────────────────────────────────────────────────
+# ─── Unknown ──────────────────────────────────────────────────────────────────
 async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "❓ বুঝতে পারিনি। /start দিয়ে শুরু করুন বা /help দেখুন।"
@@ -183,10 +206,10 @@ async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ─── Main ─────────────────────────────────────────────────────────────────────
 def main():
     if not TELEGRAM_TOKEN:
-        logger.error("TELEGRAM_BOT_TOKEN not set!")
+        logger.error("❌ TELEGRAM_BOT_TOKEN not set!")
         return
     if not HF_API_KEY:
-        logger.error("HUGGINGFACE_API_KEY not set!")
+        logger.error("❌ HUGGINGFACE_API_KEY not set!")
         return
 
     app = Application.builder().token(TELEGRAM_TOKEN).build()
@@ -198,8 +221,8 @@ def main():
     app.add_handler(CallbackQueryHandler(button_callback))
     app.add_handler(MessageHandler(filters.COMMAND, unknown))
 
-    logger.info("✅ RiduyStudio Bot চালু হয়েছে!")
-    app.run_polling(allowed_updates=Update.ALL_TYPES)
+    logger.info("✅ RiduyStudio Bot চালু হয়েছে! Polling mode...")
+    app.run_polling(allowed_updates=Update.ALL_TYPES, drop_pending_updates=True)
 
 if __name__ == "__main__":
     main()
