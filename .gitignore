@@ -1,1 +1,5 @@
 .agents/.env
+*.env
+__pycache__/
+*.pyc
+.agents/.memory/
