@@ -197,11 +197,41 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             parse_mode="Markdown"
         )
 
-# ─── Unknown ──────────────────────────────────────────────────────────────────
-async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "❓ বুঝতে পারিনি। /start দিয়ে শুরু করুন বা /help দেখুন।"
-    )
+# ─── Text Message Handler ─────────────────────────────────────────────────────
+async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    text = update.message.text.strip().lower()
+
+    # ইমেজ সম্পর্কিত keyword
+    if any(word in text for word in ["image", "ইমেজ", "ছবি", "picture", "photo", "draw", "আঁক"]):
+        await update.message.reply_text(
+            "🎨 ইমেজ তৈরি করতে এভাবে লিখুন:\n`/image আপনার প্রম্পট`\n\nউদাহরণ:\n`/image a beautiful sunset`",
+            parse_mode="Markdown"
+        )
+    # ভিডিও সম্পর্কিত keyword
+    elif any(word in text for word in ["video", "ভিডিও", "animation", "অ্যানিমেশন", "animate"]):
+        await update.message.reply_text(
+            "🎬 ভিডিও তৈরি করতে এভাবে লিখুন:\n`/video আপনার প্রম্পট`\n\nউদাহরণ:\n`/video a cat walking in rain`",
+            parse_mode="Markdown"
+        )
+    # হ্যালো / সালাম
+    elif any(word in text for word in ["hello", "hi", "হ্যালো", "হেলো", "সালাম", "আসসালামু"]):
+        await update.message.reply_text(
+            "👋 হ্যালো! আমি RiduyStudio Bot।\n\n"
+            "আমি AI দিয়ে ইমেজ ও ভিডিও তৈরি করতে পারি।\n"
+            "/start দিয়ে শুরু করুন বা /help দেখুন।"
+        )
+    # সাহায্য
+    elif any(word in text for word in ["help", "সাহায্য", "হেল্প", "কি করো", "কী করো"]):
+        await help_command(update, context)
+    # যেকোনো অন্য text
+    else:
+        await update.message.reply_text(
+            "❓ বুঝতে পারিনি!\n\n"
+            "🎨 ইমেজ চাইলে: `/image আপনার প্রম্পট`\n"
+            "🎬 ভিডিও চাইলে: `/video আপনার প্রম্পট`\n"
+            "📖 সাহায্যের জন্য: /help",
+            parse_mode="Markdown"
+        )
 
 # ─── Main ─────────────────────────────────────────────────────────────────────
 def main():
@@ -219,7 +249,10 @@ def main():
     app.add_handler(CommandHandler("image", generate_image))
     app.add_handler(CommandHandler("video", generate_video))
     app.add_handler(CallbackQueryHandler(button_callback))
-    app.add_handler(MessageHandler(filters.COMMAND, unknown))
+    # সাধারণ text message handler (command ছাড়া সব)
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
+    # Unknown command
+    app.add_handler(MessageHandler(filters.COMMAND, lambda u, c: u.message.reply_text("❓ অজানা কমান্ড। /help দেখুন।")))
 
     logger.info("✅ RiduyStudio Bot চালু হয়েছে! Polling mode...")
     app.run_polling(allowed_updates=Update.ALL_TYPES, drop_pending_updates=True)
