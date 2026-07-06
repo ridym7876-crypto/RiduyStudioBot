@@ -504,29 +504,57 @@ res = requests.post(<span class="str">"https://api.base44.com/api/apps/6a405e6e9
         }
 
         // ─── API Key ────────────────────────────────────────────────────
-        function generateKey() {
+        async function generateKey() {
             const bindApp = document.getElementById("bindApp").value.trim();
-            const key = genRandomKey();
+            const genBtn = event.target;
+            genBtn.disabled = true;
+            genBtn.innerHTML = '<span class="spinner"></span> Generating...';
 
-            // Save to localStorage
-            storedKeys.push({ key, bindApp, created: new Date().toISOString() });
-            localStorage.setItem("riduy_keys", JSON.stringify(storedKeys));
+            try {
+                // Call backend to generate AND save the key
+                const res = await fetch(API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ action: "generate_key", bind_app: bindApp })
+                });
+                const data = await res.json();
 
-            // Display
-            document.getElementById("keyResult").style.display = "block";
-            document.getElementById("keyText").textContent = key;
-            renderStoredKeys();
+                let key;
+                if (data.success && data.apiKey) {
+                    // Backend generated and saved the key
+                    key = data.apiKey;
+                    showToast("✅ Key তৈরি ও সার্ভারে সেভ হয়েছে!");
+                } else {
+                    // Fallback: generate client-side
+                    key = genRandomKey();
+                    showToast("✅ Key তৈরি হয়েছে (local mode)");
+                }
 
-            // Auto-activate
-            useKey(key);
-            showToast("✅ API Key তৈরি হয়েছে!");
+                // Save to localStorage
+                storedKeys.push({ key, bindApp, created: new Date().toISOString() });
+                localStorage.setItem("riduy_keys", JSON.stringify(storedKeys));
 
-            // Also try to save to backend
-            fetch(API_URL, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ action: "generate_key", bind_app: bindApp })
-            }).catch(() => {});
+                // Display
+                document.getElementById("keyResult").style.display = "block";
+                document.getElementById("keyText").textContent = key;
+                renderStoredKeys();
+
+                // Auto-activate
+                useKey(key);
+            } catch (err) {
+                // Fallback: generate client-side
+                const key = genRandomKey();
+                storedKeys.push({ key, bindApp, created: new Date().toISOString() });
+                localStorage.setItem("riduy_keys", JSON.stringify(storedKeys));
+                document.getElementById("keyResult").style.display = "block";
+                document.getElementById("keyText").textContent = key;
+                renderStoredKeys();
+                useKey(key);
+                showToast("✅ Key তৈরি হয়েছে (local mode)");
+            } finally {
+                genBtn.disabled = false;
+                genBtn.innerHTML = "🔑 API Key Generate করুন";
+            }
         }
 
         function useKey(key) {
@@ -663,27 +691,45 @@ res = requests.post(<span class="str">"https://api.base44.com/api/apps/6a405e6e9
         function formatResult(data) {
             let html = "";
             if (data.type) html += `<div style="color:var(--green);margin-bottom:8px;">Type: ${data.type}</div>`;
+            if (data.storedIn) html += `<div style="color:var(--muted);font-size:0.8rem;margin-bottom:8px;">💾 Stored in: ${data.storedIn}</div>`;
             if (data.result) {
                 const r = data.result;
-                if (r.output) {
-                    // Text output
+                if (r.base64 && r.isImage) {
+                    // Display image from base64
+                    html += `<img src="data:image/png;base64,${r.base64}" style="max-width:100%;border-radius:8px;margin:8px 0;" />`;
+                    html += `<div style="color:var(--green);font-size:0.8rem;">✅ Image generated (${r.size} bytes)</div>`;
+                } else if (r.base64 && r.isVideo) {
+                    html += `<div style="color:var(--green);">✅ Video generated (${r.size} bytes)</div>`;
+                    html += `<div style="color:var(--muted);font-size:0.8rem;">Video output received (${r.size} bytes)</div>`;
+                } else if (r.output) {
                     html += `<pre style="color:#c4b5fd;white-space:pre-wrap;">${escapeHtml(r.output)}</pre>`;
-                } else if (r.size) {
-                    html += `<div style="color:var(--green);">✅ Binary output received (${r.size} bytes)\nType: ${r.type || "unknown"}</div>`;
+                } else if (r.size && !r.base64) {
+                    html += `<div style="color:var(--green);">✅ Output received (${r.size} bytes)\nType: ${r.type || "unknown"}</div>`;
                 } else if (r.error) {
                     html += `<span style="color:var(--red);">${r.error}</span>`;
+                } else if (r.status === "loading") {
+                    html += `<div style="color:var(--yellow);">${r.message || "মডেল লোড হচ্ছে। ৩০ সেকেন্ড পর আবার চেষ্টা করুন।"}</div>`;
                 } else {
                     html += `<pre style="white-space:pre-wrap;">${escapeHtml(JSON.stringify(r, null, 2))}</pre>`;
                 }
             }
+            if (data.code) {
+                const r = data.code;
+                if (r.output) html += `<pre style="color:#c4b5fd;white-space:pre-wrap;">${escapeHtml(r.output)}</pre>`;
+                else if (r.error) html += `<span style="color:var(--red);">${r.error}</span>`;
+                else html += `<pre>${escapeHtml(JSON.stringify(r, null, 2))}</pre>`;
+            }
             if (data.steps) {
-                // Chain generation
                 html += "<div style='color:var(--primary-hover);margin-bottom:8px;'>🔗 Chain Results:</div>";
                 for (const [key, val] of Object.entries(data.steps)) {
-                    html += `<div style="margin-bottom:8px;"><strong>${key}:</strong> `;
-                    if (val.output) html += `<pre style="white-space:pre-wrap;">${escapeHtml(val.output.substring(0, 500))}</pre>`;
-                    else if (val.size) html += `✅ ${val.size} bytes`;
+                    html += `<div style="margin-bottom:12px;"><strong style="color:var(--primary-hover);">${key}:</strong> `;
+                    if (val.base64 && val.isImage) {
+                        html += `<img src="data:image/png;base64,${val.base64}" style="max-width:100%;border-radius:8px;margin:4px 0;" />`;
+                    } else if (val.output) {
+                        html += `<pre style="white-space:pre-wrap;">${escapeHtml(val.output.substring(0, 500))}</pre>`;
+                    } else if (val.size) html += `✅ ${val.size} bytes`;
                     else if (val.error) html += `❌ ${val.error}`;
+                    else if (val.status === "loading") html += `⏳ Loading`;
                     else html += `<pre>${escapeHtml(JSON.stringify(val))}</pre>`;
                     html += "</div>";
                 }
