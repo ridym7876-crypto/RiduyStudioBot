@@ -1,0 +1,49 @@
+{
+  "properties": {
+    "apiKeyId": {
+      "type": "string",
+      "description": "Reference to the API key used"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "text-to-image",
+        "text-to-image-animation",
+        "x-to-video",
+        "chain-generation",
+        "text-to-image-edit",
+        "text-to-code",
+        "text-to-code-edit"
+      ]
+    },
+    "inputPrompt": {
+      "type": "string"
+    },
+    "outputUrl": {
+      "type": "string",
+      "description": "URL of generated output (image/video/audio)"
+    },
+    "outputText": {
+      "type": "string",
+      "description": "Text output for code generation"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "completed",
+        "failed"
+      ],
+      "default": "pending"
+    },
+    "errorMessage": {
+      "type": "string"
+    },
+    "userIdentifier": {
+      "type": "string"
+    }
+  },
+  "type": "object",
+  "required": [],
+  "name": "RiduyGeneration"
+}

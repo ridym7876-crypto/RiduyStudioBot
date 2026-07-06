@@ -1,0 +1,48 @@
+{
+  "properties": {
+    "apiKey": {
+      "type": "string",
+      "description": "Full API key: Riduy...Apik"
+    },
+    "userIdentifier": {
+      "type": "string",
+      "description": "User email or name"
+    },
+    "boundApp": {
+      "type": "string",
+      "description": "Domain/app/game where this key is locked to"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true
+    },
+    "dailyLimit": {
+      "type": "integer",
+      "default": 100
+    },
+    "todayCount": {
+      "type": "integer",
+      "default": 0
+    },
+    "lastResetDate": {
+      "type": "string"
+    },
+    "totalCalls": {
+      "type": "integer",
+      "default": 0
+    },
+    "createdAt": {
+      "type": "string"
+    },
+    "teachCommands": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Custom instructions the user taught the AI"
+    }
+  },
+  "type": "object",
+  "required": [],
+  "name": "RiduyApiKey"
+}
