@@ -3,21 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Riduy AI API — ফ্রি AI প্ল্যাটফর্ম</title>
-    <meta name="description" content="Riduy AI API — পৃথিবীর সবচেয়ে শক্তিশালী ফ্রি AI API। ইমেজ, ভিডিও, কোড, এডিট, চেইন-জেন।">
+    <title>Riduy AI API — ফ্রি AI API প্ল্যাটফর্ম</title>
+    <meta name="description" content="Riduy AI API — ফ্রি AI API প্ল্যাটফর্ম। API key তৈরি করুন, ৫টা AI endpoint টেস্ট করুন।">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
             --bg: #0a0a0f;
             --card: #12121a;
+            --card-hover: #16161f;
             --border: #1e1e2e;
+            --border-active: #6366f1;
             --text: #e4e4e7;
             --muted: #71717a;
             --primary: #6366f1;
             --primary-hover: #818cf8;
+            --primary-dim: rgba(99,102,241,0.15);
             --accent: #ec4899;
             --green: #10b981;
-            --code-bg: #1a1a2e;
+            --red: #ef4444;
+            --yellow: #f59e0b;
+            --code-bg: #0d1117;
         }
         body {
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
@@ -26,269 +31,224 @@
             line-height: 1.6;
             overflow-x: hidden;
         }
-        /* Animated background */
         .bg-glow {
-            position: fixed;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle at 20% 30%, rgba(99,102,241,0.08) 0%, transparent 40%),
-                        radial-gradient(circle at 80% 70%, rgba(236,72,153,0.06) 0%, transparent 40%);
-            z-index: -1;
-            animation: float 20s ease-in-out infinite;
+            position: fixed; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle at 20% 30%, rgba(99,102,241,0.06) 0%, transparent 40%),
+                        radial-gradient(circle at 80% 70%, rgba(236,72,153,0.04) 0%, transparent 40%);
+            z-index: -1; animation: float 20s ease-in-out infinite;
         }
-        @keyframes float {
-            0%, 100% { transform: translate(0, 0); }
-            50% { transform: translate(-30px, 30px); }
-        }
+        @keyframes float { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-30px,30px)} }
 
         /* Nav */
         nav {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            background: rgba(10,10,15,0.85);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border);
-            padding: 14px 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            position: sticky; top: 0; z-index: 100;
+            background: rgba(10,10,15,0.85); backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border); padding: 14px 24px;
+            display: flex; justify-content: space-between; align-items: center;
         }
         .logo {
-            font-size: 1.3rem;
-            font-weight: 800;
+            font-size: 1.3rem; font-weight: 800;
             background: linear-gradient(135deg, var(--primary), var(--accent));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
         .nav-links { display: flex; gap: 20px; }
-        .nav-links a {
-            color: var(--muted);
-            text-decoration: none;
-            font-size: 0.9rem;
-            transition: color 0.2s;
+        .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+        .nav-links a:hover, .nav-links a.active { color: var(--text); }
+        .nav-key {
+            font-size: 0.75rem; padding: 4px 10px; border-radius: 6px;
+            background: var(--primary-dim); color: var(--primary-hover);
+            font-family: monospace; max-width: 120px; overflow: hidden;
+            text-overflow: ellipsis; white-space: nowrap;
         }
-        .nav-links a:hover { color: var(--text); }
+
+        /* Layout */
+        .container { max-width: 1000px; margin: 0 auto; padding: 0 24px; }
+        section { padding: 48px 0; }
+        h2 { font-size: 1.6rem; font-weight: 700; margin-bottom: 6px; }
+        .sub { font-size: 0.95rem; color: var(--muted); margin-bottom: 24px; }
 
         /* Hero */
-        .hero {
-            text-align: center;
-            padding: 80px 24px 60px;
-            max-width: 800px;
-            margin: 0 auto;
-        }
+        .hero { text-align: center; padding: 60px 24px 40px; max-width: 800px; margin: 0 auto; }
         .hero h1 {
-            font-size: 2.8rem;
-            font-weight: 800;
-            margin-bottom: 16px;
+            font-size: 2.6rem; font-weight: 800; margin-bottom: 16px;
             background: linear-gradient(135deg, #fff 0%, #a5b4fc 50%, #f9a8d4 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            line-height: 1.2;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1.2;
         }
-        .hero p {
-            font-size: 1.15rem;
-            color: var(--muted);
-            margin-bottom: 32px;
-        }
+        .hero p { font-size: 1.1rem; color: var(--muted); margin-bottom: 28px; }
         .badge {
-            display: inline-block;
-            padding: 6px 16px;
-            background: rgba(16,185,129,0.1);
-            border: 1px solid rgba(16,185,129,0.3);
-            border-radius: 100px;
-            color: var(--green);
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-bottom: 24px;
+            display: inline-block; padding: 6px 16px;
+            background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3);
+            border-radius: 100px; color: var(--green); font-size: 0.85rem; font-weight: 600; margin-bottom: 20px;
         }
         .cta-group { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
         .btn {
-            padding: 12px 28px;
-            border-radius: 10px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            text-decoration: none;
-            transition: all 0.2s;
-            border: none;
-            cursor: pointer;
+            padding: 12px 28px; border-radius: 10px; font-size: 0.95rem; font-weight: 600;
+            text-decoration: none; transition: all 0.2s; border: none; cursor: pointer; display: inline-flex;
+            align-items: center; gap: 8px;
         }
-        .btn-primary {
-            background: var(--primary);
-            color: #fff;
-        }
+        .btn-primary { background: var(--primary); color: #fff; }
         .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
-        .btn-secondary {
-            background: var(--card);
-            color: var(--text);
-            border: 1px solid var(--border);
-        }
+        .btn-secondary { background: var(--card); color: var(--text); border: 1px solid var(--border); }
         .btn-secondary:hover { border-color: var(--primary); }
+        .btn-sm { padding: 8px 16px; font-size: 0.85rem; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
         /* Stats */
-        .stats {
-            display: flex;
-            justify-content: center;
-            gap: 48px;
-            padding: 40px 24px;
-            max-width: 800px;
-            margin: 0 auto;
-        }
+        .stats { display: flex; justify-content: center; gap: 48px; padding: 20px 0 40px; }
         .stat { text-align: center; }
-        .stat-num {
-            font-size: 2rem;
-            font-weight: 800;
-            color: var(--primary);
-        }
-        .stat-label {
-            font-size: 0.85rem;
-            color: var(--muted);
-        }
+        .stat-num { font-size: 1.8rem; font-weight: 800; color: var(--primary); }
+        .stat-label { font-size: 0.8rem; color: var(--muted); }
 
-        /* Sections */
-        section {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 60px 24px;
+        /* Key Generator Card */
+        .key-card {
+            background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+            padding: 32px; max-width: 600px; margin: 0 auto;
         }
-        section h2 {
-            font-size: 1.8rem;
-            font-weight: 700;
-            margin-bottom: 8px;
+        .key-display {
+            background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px;
+            padding: 16px; margin: 16px 0; font-family: 'Fira Code', monospace; font-size: 0.9rem;
+            word-break: break-all; color: #a5b4fc; position: relative; min-height: 50px;
+            display: flex; align-items: center;
         }
-        section h2 .sub {
-            display: block;
-            font-size: 0.95rem;
-            color: var(--muted);
-            font-weight: 400;
-            margin-top: 4px;
+        .key-display .copy-btn {
+            position: absolute; top: 8px; right: 8px;
+            background: var(--primary); color: #fff; border: none;
+            padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; cursor: pointer;
         }
+        .key-info { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
+        .key-tag {
+            padding: 4px 12px; border-radius: 6px; font-size: 0.8rem;
+            background: var(--primary-dim); color: var(--primary-hover);
+        }
+        .stored-keys { margin-top: 20px; }
+        .stored-key-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 14px; background: var(--code-bg); border-radius: 8px;
+            margin-bottom: 8px; font-family: monospace; font-size: 0.8rem;
+        }
+        .stored-key-item .actions { display: flex; gap: 8px; }
+        .icon-btn {
+            background: none; border: 1px solid var(--border); color: var(--muted);
+            padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 0.75rem;
+        }
+        .icon-btn:hover { color: var(--text); border-color: var(--primary); }
+        .icon-btn.del:hover { color: var(--red); border-color: var(--red); }
+
+        /* Tabs */
+        .tabs {
+            display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px;
+        }
+        .tab {
+            padding: 10px 20px; border-radius: 10px; background: var(--card);
+            border: 1px solid var(--border); color: var(--muted); cursor: pointer;
+            font-size: 0.9rem; font-weight: 600; transition: all 0.2s;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .tab:hover { border-color: var(--primary); color: var(--text); }
+        .tab.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+        /* API Tester */
+        .tester-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 768px) { .tester-grid { grid-template-columns: 1fr; } }
+        .tester-input, .tester-output {
+            background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 24px;
+        }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 6px; font-weight: 600; }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%; background: var(--code-bg); border: 1px solid var(--border);
+            border-radius: 8px; padding: 10px 14px; color: var(--text); font-size: 0.9rem;
+            font-family: inherit; transition: border 0.2s;
+        }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            outline: none; border-color: var(--primary);
+        }
+        .form-group textarea { min-height: 80px; resize: vertical; font-family: 'Fira Code', monospace; }
+        .output-box {
+            background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px;
+            padding: 16px; min-height: 200px; font-family: 'Fira Code', monospace; font-size: 0.85rem;
+            overflow-x: auto; white-space: pre-wrap; word-break: break-all; color: #a5b4fc;
+        }
+        .output-box img { max-width: 100%; border-radius: 8px; margin: 8px 0; }
+        .status-badge {
+            display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem;
+            font-weight: 600; margin-bottom: 12px;
+        }
+        .status-idle { background: rgba(113,113,122,0.15); color: var(--muted); }
+        .status-loading { background: rgba(245,158,11,0.15); color: var(--yellow); }
+        .status-success { background: rgba(16,185,129,0.15); color: var(--green); }
+        .status-error { background: rgba(239,68,68,0.15); color: var(--red); }
+
+        .spinner {
+            display: inline-block; width: 16px; height: 16px; border: 2px solid var(--border);
+            border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
         /* Endpoint cards */
-        .endpoints {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 16px;
-            margin-top: 32px;
-        }
+        .endpoints { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
         .endpoint-card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 24px;
-            transition: all 0.3s;
+            background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+            padding: 24px; transition: all 0.3s; cursor: pointer;
         }
-        .endpoint-card:hover {
-            border-color: var(--primary);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(99,102,241,0.1);
-        }
-        .endpoint-icon {
-            font-size: 1.8rem;
-            margin-bottom: 12px;
-        }
-        .endpoint-card h3 {
-            font-size: 1.1rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-        .endpoint-card p {
-            color: var(--muted);
-            font-size: 0.9rem;
-            margin-bottom: 12px;
-        }
+        .endpoint-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(99,102,241,0.1); }
+        .endpoint-card.active { border-color: var(--primary); background: var(--card-hover); }
+        .endpoint-icon { font-size: 1.6rem; margin-bottom: 10px; }
+        .endpoint-card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 6px; }
+        .endpoint-card p { color: var(--muted); font-size: 0.85rem; margin-bottom: 10px; }
         .endpoint-code {
-            background: var(--code-bg);
-            border-radius: 8px;
-            padding: 10px 14px;
-            font-family: 'Fira Code', monospace;
-            font-size: 0.8rem;
-            color: #a5b4fc;
-            overflow-x: auto;
+            background: var(--code-bg); border-radius: 6px; padding: 6px 10px;
+            font-family: monospace; font-size: 0.78rem; color: #a5b4fc;
         }
 
-        /* Code block */
+        /* Code examples */
         .code-block {
-            background: var(--code-bg);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 20px;
-            margin-top: 20px;
-            font-family: 'Fira Code', 'Courier New', monospace;
-            font-size: 0.85rem;
-            overflow-x: auto;
-            position: relative;
+            background: var(--code-bg); border: 1px solid var(--border); border-radius: 12px;
+            padding: 20px; margin-top: 16px; font-family: 'Fira Code', monospace; font-size: 0.85rem;
+            overflow-x: auto; position: relative;
         }
         .code-block .copy {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            background: var(--primary);
-            color: #fff;
-            border: none;
-            padding: 5px 12px;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            cursor: pointer;
-            opacity: 0;
-            transition: opacity 0.2s;
+            position: absolute; top: 12px; right: 12px; background: var(--primary); color: #fff;
+            border: none; padding: 5px 12px; border-radius: 6px; font-size: 0.75rem; cursor: pointer;
+            opacity: 0; transition: opacity 0.2s;
         }
         .code-block:hover .copy { opacity: 1; }
         .code-block pre { color: #c4b5fd; }
-        .code-block .kw { color: #f472b6; }
-        .code-block .str { color: #34d399; }
-        .code-block .com { color: #6b7280; }
+        .kw { color: #f472b6; } .str { color: #34d399; } .com { color: #6b7280; }
 
-        /* Steps */
-        .steps {
-            margin-top: 32px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
+        /* Teach section */
+        .teach-box {
+            background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+            padding: 24px; max-width: 600px; margin: 0 auto;
         }
-        .step {
-            display: flex;
-            gap: 16px;
-            align-items: flex-start;
+        .teach-list { margin-top: 16px; }
+        .teach-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 14px; background: var(--code-bg); border-radius: 8px;
+            margin-bottom: 8px; font-size: 0.9rem;
         }
-        .step-num {
-            flex-shrink: 0;
-            width: 32px;
-            height: 32px;
-            background: var(--primary);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 0.85rem;
-            color: #fff;
-        }
-        .step-content h4 { font-size: 1rem; font-weight: 600; margin-bottom: 4px; }
-        .step-content p { color: var(--muted); font-size: 0.9rem; }
-        .step-content code {
-            background: var(--code-bg);
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.85rem;
-            color: #a5b4fc;
-        }
+        .teach-item .del { color: var(--red); cursor: pointer; background: none; border: none; font-size: 1rem; }
 
         /* Footer */
         footer {
-            border-top: 1px solid var(--border);
-            padding: 40px 24px;
-            text-align: center;
-            color: var(--muted);
-            font-size: 0.85rem;
+            border-top: 1px solid var(--border); padding: 40px 24px; text-align: center;
+            color: var(--muted); font-size: 0.85rem;
         }
         footer a { color: var(--primary); text-decoration: none; }
 
-        /* Mobile */
+        /* Toast */
+        .toast {
+            position: fixed; bottom: 24px; right: 24px; z-index: 200;
+            background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+            padding: 14px 20px; font-size: 0.9rem; box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+            transform: translateY(100px); opacity: 0; transition: all 0.3s;
+        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast.success { border-color: var(--green); }
+        .toast.error { border-color: var(--red); }
+
         @media (max-width: 640px) {
-            .hero h1 { font-size: 2rem; }
+            .hero h1 { font-size: 1.8rem; }
             .stats { gap: 24px; }
             .nav-links { display: none; }
         }
@@ -300,244 +260,489 @@
     <nav>
         <div class="logo">⚡ Riduy AI</div>
         <div class="nav-links">
-            <a href="#endpoints">Endpoints</a>
-            <a href="#auth">Authentication</a>
-            <a href="#quickstart">Quick Start</a>
-            <a href="#bot">Telegram Bot</a>
+            <a href="#keygen" onclick="scrollTo('keygen')">API Key</a>
+            <a href="#tester" onclick="scrollTo('tester')">Tester</a>
+            <a href="#endpoints" onclick="scrollTo('endpoints')">Endpoints</a>
+            <a href="#teach" onclick="scrollTo('teach')">Teach</a>
             <a href="https://github.com/ridym7876-crypto/RiduyStudioBot" target="_blank">GitHub</a>
         </div>
+        <div class="nav-key" id="navKeyDisplay" style="display:none;"></div>
     </nav>
 
+    <!-- Hero -->
     <div class="hero">
         <div class="badge">✅ 100% ফ্রি · Hugging Face Powered</div>
         <h1>Riduy AI API</h1>
-        <p>পৃথিবীর সবচেয়ে শক্তিশালী ফ্রি AI API প্ল্যাটফর্ম।<br>ইমেজ, ভিডিও, কোড, এডিট, চেইন-জেন — সব এক জায়গায়।</p>
+        <p>পৃথিবীর সবচেয়ে শক্তিশালী ফ্রি AI API প্ল্যাটফর্ম।<br>API key তৈরি করুন, ৫টা AI endpoint টেস্ট করুন — সব এক জায়গায়।</p>
         <div class="cta-group">
-            <a href="#quickstart" class="btn btn-primary">🚀 শুরু করুন</a>
-            <a href="https://github.com/ridym7876-crypto/RiduyStudioBot" target="_blank" class="btn btn-secondary">📦 GitHub</a>
+            <a href="#keygen" class="btn btn-primary" onclick="scrollTo('keygen')">🔑 Key তৈরি করুন</a>
+            <a href="#tester" class="btn btn-secondary" onclick="scrollTo('tester')">🧪 API টেস্ট করুন</a>
         </div>
     </div>
 
-    <div class="stats">
+    <div class="stats container">
         <div class="stat"><div class="stat-num">5</div><div class="stat-label">AI Endpoints</div></div>
         <div class="stat"><div class="stat-num">100</div><div class="stat-label">দৈনিক কল</div></div>
         <div class="stat"><div class="stat-num">0$</div><div class="stat-label">খরচ</div></div>
         <div class="stat"><div class="stat-num">24/7</div><div class="stat-label">টেলিগ্রাম বট</div></div>
     </div>
 
+    <!-- API Key Generator -->
+    <section id="keygen" class="container">
+        <h2>🔑 API Key তৈরি করুন</h2>
+        <p class="sub">নতুন Riduy API key জেনারেট করুন — সম্পূর্ণ ফ্রি</p>
+        <div class="key-card">
+            <div class="form-group">
+                <label>App / Website নাম (optional)</label>
+                <input type="text" id="bindApp" placeholder="my_website" style="background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);width:100%;">
+            </div>
+            <button class="btn btn-primary" onclick="generateKey()" style="width:100%;">
+                🔑 API Key Generate করুন
+            </button>
+            <div id="keyResult" style="display:none; margin-top:20px;">
+                <div class="key-display" id="keyDisplay">
+                    <span id="keyText">Loading...</span>
+                    <button class="copy-btn" onclick="copyText(document.getElementById('keyText').innerText)">Copy</button>
+                </div>
+                <div class="key-info">
+                    <span class="key-tag">Header: ABDUL_KHALEK_RIDUY_API-KEY</span>
+                    <span class="key-tag">দৈনিক লিমিট: 100</span>
+                    <span class="key-tag">✅ Active</span>
+                </div>
+                <button class="btn btn-secondary btn-sm" onclick="useKey(document.getElementById('keyText').innerText)" style="margin-top:12px;">
+                    ⬇️ এই key টেস্টারে ব্যবহার করুন
+                </button>
+            </div>
+            <div class="stored-keys" id="storedKeys"></div>
+        </div>
+    </section>
+
+    <!-- API Tester -->
+    <section id="tester" class="container">
+        <h2>🧪 API Tester</h2>
+        <p class="sub">ব্রাউজার থেকে সরাসরি AI endpoint টেস্ট করুন</p>
+
+        <div class="form-group" style="max-width:600px;">
+            <label>আপনার API Key</label>
+            <div style="display:flex;gap:8px;">
+                <input type="text" id="apiKeyInput" placeholder="Riduy...Apik" style="background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);flex:1;font-family:monospace;font-size:0.85rem;">
+                <button class="btn btn-secondary btn-sm" onclick="loadStoredKey()">📂 Load</button>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" data-endpoint="text_to_image" onclick="selectEndpoint(this)">🎨 Image</div>
+            <div class="tab" data-endpoint="text_to_image_animation" onclick="selectEndpoint(this)">🎭 Animation</div>
+            <div class="tab" data-endpoint="x_to_video" onclick="selectEndpoint(this)">🎬 Video</div>
+            <div class="tab" data-endpoint="chain_generation" onclick="selectEndpoint(this)">🔗 Chain-Gen</div>
+            <div class="tab" data-endpoint="text_to_image_edit" onclick="selectEndpoint(this)">✏️ Image Edit</div>
+            <div class="tab" data-endpoint="text_to_code" onclick="selectEndpoint(this)">💻 Code</div>
+            <div class="tab" data-endpoint="text_to_code_edit" onclick="selectEndpoint(this)">📝 Code Edit</div>
+        </div>
+
+        <div class="tester-grid">
+            <div class="tester-input">
+                <div class="form-group">
+                    <label>Prompt</label>
+                    <textarea id="promptInput" placeholder="a beautiful sunset over the ocean"></textarea>
+                </div>
+                <div class="form-group" id="editInstructionGroup" style="display:none;">
+                    <label>Edit Instruction (optional)</label>
+                    <input type="text" id="editInstruction" placeholder="make it darker" style="background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);width:100%;">
+                </div>
+                <div class="form-group" id="imageUrlGroup" style="display:none;">
+                    <label>Image URL (optional, for X→Video)</label>
+                    <input type="text" id="imageUrl" placeholder="https://example.com/image.jpg" style="background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);width:100%;">
+                </div>
+                <button class="btn btn-primary" id="runBtn" onclick="runTest()" style="width:100%;">
+                    🚀 Run AI Request
+                </button>
+                <div style="margin-top:16px;font-size:0.8rem;color:var(--muted);">
+                    <strong>Active endpoint:</strong> <span id="activeEndpoint" style="color:var(--primary-hover);">text_to_image</span>
+                </div>
+            </div>
+            <div class="tester-output">
+                <div class="status-badge status-idle" id="statusBadge">⏳ Idle</div>
+                <div class="output-box" id="outputBox">// Result এখানে দেখাবে...</div>
+            </div>
+        </div>
+    </section>
+
     <!-- Endpoints -->
-    <section id="endpoints">
-        <h2>🎯 AI Endpoints
-            <span class="sub">৫টা শক্তিশালী AI সার্ভিস — সব ফ্রি</span>
-        </h2>
+    <section id="endpoints" class="container">
+        <h2>🎯 AI Endpoints</h2>
+        <p class="sub">৫টা শক্তিশালী AI সার্ভিস</p>
         <div class="endpoints">
-            <div class="endpoint-card">
+            <div class="endpoint-card" onclick="selectEndpointByText('text_to_image')">
                 <div class="endpoint-icon">🎨</div>
+                <h3>Text → Image</h3>
+                <p>AI দিয়ে ইমেজ তৈরি করুন। Stable Diffusion XL।</p>
+                <div class="endpoint-code">action: text_to_image</div>
+            </div>
+            <div class="endpoint-card" onclick="selectEndpointByText('text_to_image_animation')">
+                <div class="endpoint-icon">🎭</div>
                 <h3>Text → Image Animation</h3>
-                <p>টেক্সট থেকে AI অ্যানিমেশন ইমেজ তৈরি করুন।</p>
+                <p>টেক্সট থেকে অ্যানিমেশন তৈরি।</p>
                 <div class="endpoint-code">action: text_to_image_animation</div>
             </div>
-            <div class="endpoint-card">
+            <div class="endpoint-card" onclick="selectEndpointByText('x_to_video')">
                 <div class="endpoint-icon">🎬</div>
                 <h3>X → Video</h3>
-                <p>টেক্সট বা ইমেজ থেকে ভিডিও তৈরি করুন।</p>
+                <p>টেক্সট বা ইমেজ থেকে ভিডিও।</p>
                 <div class="endpoint-code">action: x_to_video</div>
             </div>
-            <div class="endpoint-card">
+            <div class="endpoint-card" onclick="selectEndpointByText('chain_generation')">
                 <div class="endpoint-icon">🔗</div>
                 <h3>Chain Generation</h3>
-                <p>ইমেজ + ভিডিও + টেক্সট — তিনটি একসাথে!</p>
+                <p>ইমেজ + ভিডিও + টেক্সট একসাথে!</p>
                 <div class="endpoint-code">action: chain_generation</div>
             </div>
-            <div class="endpoint-card">
+            <div class="endpoint-card" onclick="selectEndpointByText('text_to_image_edit')">
                 <div class="endpoint-icon">✏️</div>
                 <h3>Image Edit</h3>
-                <p>AI দিয়ে ইমেজ এডিট ও মডিফাই করুন।</p>
+                <p>AI দিয়ে ইমেজ এডিট করুন।</p>
                 <div class="endpoint-code">action: text_to_image_edit</div>
             </div>
-            <div class="endpoint-card">
+            <div class="endpoint-card" onclick="selectEndpointByText('text_to_code')">
                 <div class="endpoint-icon">💻</div>
-                <h3>Code Edit</h3>
-                <p>AI কোড জেনারেটর ও এডিটর।</p>
-                <div class="endpoint-code">action: text_to_code / text_to_code_edit</div>
+                <h3>Code Generator</h3>
+                <p>AI কোড লিখবে আপনার জন্য।</p>
+                <div class="endpoint-code">action: text_to_code</div>
             </div>
         </div>
-    </section>
 
-    <!-- Auth -->
-    <section id="auth">
-        <h2>🔐 Authentication
-            <span class="sub">কাস্টম API key সিস্টেম — নিরাপদ ও সহজ</span>
-        </h2>
+        <!-- Code examples -->
+        <h3 style="margin-top:32px;margin-bottom:12px;font-size:1.1rem;">📋 Code Examples</h3>
         <div class="code-block">
             <button class="copy" onclick="copyCode(this)">Copy</button>
-<pre><span class="com"># API Key Format</span>
-<span class="kw">Header</span>: <span class="str">ABDUL_KHALEK_RIDUY_API-KEY</span>
-<span class="kw">Format</span>: <span class="str">Riduy</span> + [30-35 random chars] + <span class="str">Apik</span>
-<span class="kw">Length</span>: 40-45 characters
-<span class="kw">Example</span>: <span class="str">RiduyUZHAWGawyDxrPXwT66LLNwvneQxUXLEUcflApik</span>
-
-<span class="com"># Key একটা app-এ lock থাকে</span>
-<span class="kw">bind_app</span>: <span class="str">"my_app_name"</span>  <span class="com"># optional — এক key, এক জায়গা</span></pre>
+<pre><span class="com">// JavaScript</span>
+<span class="kw">const</span> res = <span class="kw">await</span> fetch(<span class="str">"https://api.base44.com/api/apps/6a405e6e979c2a41456c4c60/functions/riduyApi"</span>, {
+  method: <span class="str">"POST"</span>,
+  headers: {
+    <span class="str">"Content-Type"</span>: <span class="str">"application/json"</span>,
+    <span class="str">"ABDUL_KHALEK_RIDUY_API-KEY"</span>: <span class="str">"Riduy...Apik"</span>
+  },
+  body: JSON.stringify({
+    action: <span class="str">"text_to_image"</span>,
+    prompt: <span class="str">"a beautiful sunset"</span>
+  })
+});
+<span class="kw">const</span> data = <span class="kw">await</span> res.json();
+console.log(data);</pre>
         </div>
-    </section>
-
-    <!-- Quick Start -->
-    <section id="quickstart">
-        <h2>🚀 Quick Start
-            <span class="sub">৩ স্টেপে শুরু করুন</span>
-        </h2>
-        <div class="steps">
-            <div class="step">
-                <div class="step-num">1</div>
-                <div class="step-content">
-                    <h4>API Key তৈরি করুন</h4>
-                    <p><code>generate_key</code> action দিয়ে নতুন key তৈরি করুন।</p>
-                </div>
-            </div>
-            <div class="step">
-                <div class="step-num">2</div>
-                <div class="step-content">
-                    <h4>Header যোগ করুন</h4>
-                    <p>প্রতিটা request-এ <code>ABDUL_KHALEK_RIDUY_API-KEY</code> header পাঠান।</p>
-                </div>
-            </div>
-            <div class="step">
-                <div class="step-num">3</div>
-                <div class="step-content">
-                    <h4>AI কল করুন</h4>
-                    <p>যেকোনো endpoint call করুন — ফ্রি!</p>
-                </div>
-            </div>
-        </div>
-
         <div class="code-block">
             <button class="copy" onclick="copyCode(this)">Copy</button>
-<pre><span class="com"># 1. Key Generate</span>
-<span class="kw">POST</span> /riduyApi
-{
-  <span class="str">"action"</span>: <span class="str">"generate_key"</span>,
-  <span class="str">"bind_app"</span>: <span class="str">"my_website"</span>
-}
+<pre><span class="com"># Python</span>
+<span class="kw">import</span> requests
 
-<span class="com"># 2. Image তৈরি</span>
-<span class="kw">POST</span> /riduyApi
-<span class="kw">Header</span>: ABDUL_KHALEK_RIDUY_API-KEY: <span class="str">Riduy...Apik</span>
-{
-  <span class="str">"action"</span>: <span class="str">"text_to_image"</span>,
-  <span class="str">"prompt"</span>: <span class="str">"a beautiful sunset over the ocean"</span>
-}
-
-<span class="com"># 3. Code তৈরি</span>
-<span class="kw">POST</span> /riduyApi
-<span class="kw">Header</span>: ABDUL_KHALEK_RIDUY_API-KEY: <span class="str">Riduy...Apik</span>
-{
-  <span class="str">"action"</span>: <span class="str">"text_to_code"</span>,
-  <span class="str">"prompt"</span>: <span class="str">"write a Python fibonacci function"</span>
-}</pre>
+res = requests.post(<span class="str">"https://api.base44.com/api/apps/6a405e6e979c2a41456c4c60/functions/riduyApi"</span>,
+    headers={<span class="str">"ABDUL_KHALEK_RIDUY_API-KEY"</span>: <span class="str">"Riduy...Apik"</span>},
+    json={<span class="str">"action"</span>: <span class="str">"text_to_code"</span>, <span class="str">"prompt"</span>: <span class="str">"write fibonacci"</span>}
+)
+<span class="kw">print</span>(res.json())</pre>
         </div>
     </section>
 
     <!-- Teach -->
-    <section id="teach">
-        <h2>🧠 AI কে শেখান
-            <span class="sub">আপনার AI কে কাস্টম নির্দেশ দিন</span>
-        </h2>
-        <div class="code-block">
-            <button class="copy" onclick="copyCode(this)">Copy</button>
-<pre><span class="com"># AI কে শেখান</span>
-<span class="kw">POST</span> /riduyApi
-<span class="kw">Header</span>: ABDUL_KHALEK_RIDUY_API-KEY: <span class="str">Riduy...Apik</span>
-{
-  <span class="str">"action"</span>: <span class="str">"teach"</span>,
-  <span class="str">"teach_data"</span>: <span class="str">"always use dark theme"</span>
-}
-
-<span class="com"># Teachings দেখুন</span>
-{
-  <span class="str">"action"</span>: <span class="str">"get_teachings"</span>
-}</pre>
-        </div>
-    </section>
-
-    <!-- Telegram Bot -->
-    <section id="bot">
-        <h2>🤖 Telegram Bot
-            <span class="sub">@RiduyStudioBot — ২৪/৭ AI সহায়ক</span>
-        </h2>
-        <div class="endpoints">
-            <div class="endpoint-card">
-                <div class="endpoint-icon">🎨</div>
-                <h3>/image</h3>
-                <p>AI ইমেজ তৈরি করুন</p>
-                <div class="endpoint-code">/image a beautiful sunset</div>
+    <section id="teach" class="container">
+        <h2>🧠 AI কে শেখান</h2>
+        <p class="sub">আপনার AI কে কাস্টম নির্দেশ দিন — সে মনে রাখবে</p>
+        <div class="teach-box">
+            <div class="form-group">
+                <label>নির্দেশ / Instruction</label>
+                <div style="display:flex;gap:8px;">
+                    <input type="text" id="teachInput" placeholder="always use dark theme" style="background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);flex:1;">
+                    <button class="btn btn-primary btn-sm" onclick="addTeach()">➕ Add</button>
+                </div>
             </div>
-            <div class="endpoint-card">
-                <div class="endpoint-icon">🎬</div>
-                <h3>/video</h3>
-                <p>AI ভিডিও তৈরি করুন</p>
-                <div class="endpoint-code">/video a cat walking in rain</div>
-            </div>
-            <div class="endpoint-card">
-                <div class="endpoint-icon">💻</div>
-                <h3>/code</h3>
-                <p>AI কোড লিখবে</p>
-                <div class="endpoint-code">/code write a Python function</div>
-            </div>
-            <div class="endpoint-card">
-                <div class="endpoint-icon">🔗</div>
-                <h3>/chain</h3>
-                <p>ইমেজ+ভিডিও+টেক্সট একসাথে</p>
-                <div class="endpoint-code">/chain a futuristic city</div>
-            </div>
-            <div class="endpoint-card">
-                <div class="endpoint-icon">✏️</div>
-                <h3>/imgedit</h3>
-                <p>ইমেজ এডিট করুন</p>
-                <div class="endpoint-code">/imgedit make it blue</div>
-            </div>
-            <div class="endpoint-card">
-                <div class="endpoint-icon">📝</div>
-                <h3>/codeedit</h3>
-                <p>কোড এডিট ও ফিক্স</p>
-                <div class="endpoint-code">/codeedit your code here</div>
-            </div>
-            <div class="endpoint-card">
-                <div class="endpoint-icon">🧠</div>
-                <h3>/teach</h3>
-                <p>AI কে নির্দেশ শেখান</p>
-                <div class="endpoint-code">/teach always use dark theme</div>
-            </div>
-            <div class="endpoint-card">
-                <div class="endpoint-icon">🔑</div>
-                <h3>/keygen</h3>
-                <p>নতুন API key তৈরি</p>
-                <div class="endpoint-code">/keygen</div>
+            <div class="teach-list" id="teachList">
+                <p style="color:var(--muted);font-size:0.85rem;text-align:center;padding:20px;">এখনো কিছু শেখানো হয়নি।</p>
             </div>
         </div>
     </section>
 
     <footer>
         <p>⚡ Riduy AI API — Made with ❤️ by <a href="https://github.com/ridym7876-crypto" target="_blank">ridym7876-crypto</a></p>
-        <p style="margin-top:8px;">Powered by Hugging Face · Base44 · Telegram</p>
+        <p style="margin-top:8px;">Powered by Hugging Face · Base44 · Telegram Bot @RiduyStudioBot</p>
+        <p style="margin-top:8px;"><a href="https://t.me/RiduyStudioBot" target="_blank">🤖 Telegram Bot</a> · <a href="https://github.com/ridym7876-crypto/RiduyStudioBot" target="_blank">📦 GitHub</a></p>
     </footer>
 
+    <div class="toast" id="toast"></div>
+
     <script>
+        // ─── Config ─────────────────────────────────────────────────────
+        const API_URL = "https://api.base44.com/api/apps/6a405e6e979c2a41456c4c60/functions/riduyApi";
+        let currentEndpoint = "text_to_image";
+        let teachings = JSON.parse(localStorage.getItem("riduy_teachings") || "[]");
+        let storedKeys = JSON.parse(localStorage.getItem("riduy_keys") || "[]");
+        let activeKey = localStorage.getItem("riduy_active_key") || "";
+
+        // ─── Helpers ────────────────────────────────────────────────────
+        function scrollTo(id) {
+            document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+            document.querySelectorAll(".nav-links a").forEach(a => a.classList.remove("active"));
+            event?.target?.classList.add("active");
+        }
+        function showToast(msg, type="success") {
+            const t = document.getElementById("toast");
+            t.textContent = msg; t.className = "toast show " + type;
+            setTimeout(() => t.classList.remove("show"), 3000);
+        }
+        function copyText(text) {
+            navigator.clipboard.writeText(text).then(() => showToast("✅ Copied!"));
+        }
         function copyCode(btn) {
-            const pre = btn.parentElement.querySelector('pre');
-            const text = pre.innerText;
-            navigator.clipboard.writeText(text).then(() => {
-                btn.textContent = '✅ Copied!';
-                setTimeout(() => btn.textContent = 'Copy', 2000);
+            const pre = btn.parentElement.querySelector("pre");
+            navigator.clipboard.writeText(pre.innerText).then(() => {
+                btn.textContent = "✅ Copied!"; setTimeout(() => btn.textContent = "Copy", 2000);
             });
         }
-        // Smooth scroll
-        document.querySelectorAll('a[href^="#"]').forEach(a => {
-            a.addEventListener('click', e => {
-                e.preventDefault();
-                document.querySelector(a.getAttribute('href'))?.scrollIntoView({ behavior: 'smooth' });
-            });
-        });
+        function genRandomKey() {
+            const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            let r = ""; for (let i = 0; i < 35; i++) r += chars[Math.floor(Math.random() * chars.length)];
+            return `Riduy${r}Apik`;
+        }
+
+        // ─── API Key ────────────────────────────────────────────────────
+        function generateKey() {
+            const bindApp = document.getElementById("bindApp").value.trim();
+            const key = genRandomKey();
+
+            // Save to localStorage
+            storedKeys.push({ key, bindApp, created: new Date().toISOString() });
+            localStorage.setItem("riduy_keys", JSON.stringify(storedKeys));
+
+            // Display
+            document.getElementById("keyResult").style.display = "block";
+            document.getElementById("keyText").textContent = key;
+            renderStoredKeys();
+
+            // Auto-activate
+            useKey(key);
+            showToast("✅ API Key তৈরি হয়েছে!");
+
+            // Also try to save to backend
+            fetch(API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ action: "generate_key", bind_app: bindApp })
+            }).catch(() => {});
+        }
+
+        function useKey(key) {
+            activeKey = key;
+            localStorage.setItem("riduy_active_key", key);
+            document.getElementById("apiKeyInput").value = key;
+            const navKey = document.getElementById("navKeyDisplay");
+            navKey.textContent = key.substring(0, 15) + "...";
+            navKey.style.display = "block";
+            showToast("✅ Key টেস্টারে লোড হয়েছে!");
+        }
+
+        function renderStoredKeys() {
+            const container = document.getElementById("storedKeys");
+            if (storedKeys.length === 0) { container.innerHTML = ""; return; }
+            container.innerHTML = "<h4 style='font-size:0.9rem;margin-bottom:12px;color:var(--muted);'>📂 Saved Keys</h4>" +
+                storedKeys.map((k, i) => `
+                    <div class="stored-key-item">
+                        <span style="color:#a5b4fc;overflow:hidden;text-overflow:ellipsis;">${k.key.substring(0,25)}...</span>
+                        <div class="actions">
+                            <button class="icon-btn" onclick="useKey('${k.key}')">Use</button>
+                            <button class="icon-btn" onclick="copyText('${k.key}')">Copy</button>
+                            <button class="icon-btn del" onclick="deleteKey(${i})">🗑</button>
+                        </div>
+                    </div>`).join("");
+        }
+
+        function deleteKey(i) {
+            storedKeys.splice(i, 1);
+            localStorage.setItem("riduy_keys", JSON.stringify(storedKeys));
+            renderStoredKeys();
+            showToast("Key ডিলিট হয়েছে");
+        }
+
+        function loadStoredKey() {
+            if (activeKey) {
+                document.getElementById("apiKeyInput").value = activeKey;
+                showToast("✅ Saved key লোড হয়েছে");
+            } else if (storedKeys.length > 0) {
+                useKey(storedKeys[0].key);
+            } else {
+                showToast("❌ কোনো saved key নেই। আগে generate করুন।", "error");
+            }
+        }
+
+        // ─── Endpoint Selection ─────────────────────────────────────────
+        function selectEndpoint(el) {
+            document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+            el.classList.add("active");
+            currentEndpoint = el.dataset.endpoint;
+            document.getElementById("activeEndpoint").textContent = currentEndpoint;
+
+            // Show/hide extra fields
+            document.getElementById("editInstructionGroup").style.display =
+                (currentEndpoint === "text_to_image_edit" || currentEndpoint === "text_to_code_edit") ? "block" : "none";
+            document.getElementById("imageUrlGroup").style.display =
+                currentEndpoint === "x_to_video" ? "block" : "none";
+
+            // Update placeholder
+            const prompts = {
+                text_to_image: "a beautiful sunset over the ocean",
+                text_to_image_animation: "a cat playing with a ball",
+                x_to_video: "a dog running in the park",
+                chain_generation: "a futuristic city at night",
+                text_to_image_edit: "a red car on a highway",
+                text_to_code: "write a Python fibonacci function",
+                text_to_code_edit: "def add(a, b): return a + b",
+            };
+            document.getElementById("promptInput").placeholder = prompts[currentEndpoint] || "Enter prompt...";
+        }
+
+        function selectEndpointByText(endpoint) {
+            const tab = document.querySelector(`[data-endpoint="${endpoint}"]`);
+            if (tab) selectEndpoint(tab);
+            scrollTo("tester");
+        }
+
+        // ─── API Tester ─────────────────────────────────────────────────
+        async function runTest() {
+            const apiKey = document.getElementById("apiKeyInput").value.trim();
+            const prompt = document.getElementById("promptInput").value.trim();
+            const editInstr = document.getElementById("editInstruction").value.trim();
+            const imageUrl = document.getElementById("imageUrl").value.trim();
+
+            if (!apiKey) { showToast("❌ API Key দিন!", "error"); return; }
+            if (!prompt && !imageUrl) { showToast("❌ Prompt দিন!", "error"); return; }
+
+            const btn = document.getElementById("runBtn");
+            const status = document.getElementById("statusBadge");
+            const output = document.getElementById("outputBox");
+
+            btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Running...';
+            status.className = "status-badge status-loading";
+            status.textContent = "⏳ Processing...";
+            output.innerHTML = '<span class="spinner"></span> AI কাজ করছে...';
+
+            const body = { action: currentEndpoint, prompt, bind_app: "web_tester" };
+            if (editInstr) body.edit_instruction = editInstr;
+            if (imageUrl) body.image_url = imageUrl;
+
+            try {
+                const res = await fetch(API_URL, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "ABDUL_KHALEK_RIDUY_API-KEY": apiKey
+                    },
+                    body: JSON.stringify(body)
+                });
+                const data = await res.json();
+
+                if (data.error) {
+                    status.className = "status-badge status-error";
+                    status.textContent = "❌ Error";
+                    output.innerHTML = `<span style="color:var(--red);">${data.error}</span>`;
+                } else if (data.result?.status === "loading") {
+                    status.className = "status-badge status-loading";
+                    status.textContent = "⏳ Model Loading";
+                    output.innerHTML = `<span style="color:var(--yellow);">${data.result.message || "মডেল লোড হচ্ছে। ৩০ সেকেন্ড পর আবার চেষ্টা করুন।"}</span>`;
+                } else {
+                    status.className = "status-badge status-success";
+                    status.textContent = "✅ Success";
+                    output.innerHTML = formatResult(data);
+                }
+            } catch (err) {
+                status.className = "status-badge status-error";
+                status.textContent = "❌ Network Error";
+                output.innerHTML = `<span style="color:var(--red);">${err.message}\n\nAPI URL: ${API_URL}\n\nনিশ্চিত করুন যে আপনার ইন্টারনেট সংযোগ ঠিক আছে।</span>`;
+            } finally {
+                btn.disabled = false; btn.innerHTML = "🚀 Run AI Request";
+            }
+        }
+
+        function formatResult(data) {
+            let html = "";
+            if (data.type) html += `<div style="color:var(--green);margin-bottom:8px;">Type: ${data.type}</div>`;
+            if (data.result) {
+                const r = data.result;
+                if (r.output) {
+                    // Text output
+                    html += `<pre style="color:#c4b5fd;white-space:pre-wrap;">${escapeHtml(r.output)}</pre>`;
+                } else if (r.size) {
+                    html += `<div style="color:var(--green);">✅ Binary output received (${r.size} bytes)\nType: ${r.type || "unknown"}</div>`;
+                } else if (r.error) {
+                    html += `<span style="color:var(--red);">${r.error}</span>`;
+                } else {
+                    html += `<pre style="white-space:pre-wrap;">${escapeHtml(JSON.stringify(r, null, 2))}</pre>`;
+                }
+            }
+            if (data.steps) {
+                // Chain generation
+                html += "<div style='color:var(--primary-hover);margin-bottom:8px;'>🔗 Chain Results:</div>";
+                for (const [key, val] of Object.entries(data.steps)) {
+                    html += `<div style="margin-bottom:8px;"><strong>${key}:</strong> `;
+                    if (val.output) html += `<pre style="white-space:pre-wrap;">${escapeHtml(val.output.substring(0, 500))}</pre>`;
+                    else if (val.size) html += `✅ ${val.size} bytes`;
+                    else if (val.error) html += `❌ ${val.error}`;
+                    else html += `<pre>${escapeHtml(JSON.stringify(val))}</pre>`;
+                    html += "</div>";
+                }
+            }
+            if (data.teachings?.length) {
+                html += `<div style="margin-top:12px;color:var(--muted);font-size:0.8rem;">📚 Teachings: ${data.teachings.length}</div>`;
+            }
+            if (!html) html = `<pre>${escapeHtml(JSON.stringify(data, null, 2))}</pre>`;
+            return html;
+        }
+
+        function escapeHtml(s) {
+            return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+        }
+
+        // ─── Teach ──────────────────────────────────────────────────────
+        function addTeach() {
+            const input = document.getElementById("teachInput");
+            const text = input.value.trim();
+            if (!text) { showToast("❌ কিছু লিখুন!", "error"); return; }
+            teachings.push(text);
+            localStorage.setItem("riduy_teachings", JSON.stringify(teachings));
+            input.value = "";
+            renderTeachings();
+            showToast("✅ AI কে শেখানো হয়েছে!");
+        }
+
+        function deleteTeach(i) {
+            teachings.splice(i, 1);
+            localStorage.setItem("riduy_teachings", JSON.stringify(teachings));
+            renderTeachings();
+        }
+
+        function renderTeachings() {
+            const container = document.getElementById("teachList");
+            if (teachings.length === 0) {
+                container.innerHTML = "<p style='color:var(--muted);font-size:0.85rem;text-align:center;padding:20px;'>এখনো কিছু শেখানো হয়নি।</p>";
+                return;
+            }
+            container.innerHTML = teachings.map((t, i) => `
+                <div class="teach-item">
+                    <span>${escapeHtml(t)}</span>
+                    <button class="del" onclick="deleteTeach(${i})">🗑</button>
+                </div>`).join("");
+        }
+
+        // ─── Init ───────────────────────────────────────────────────────
+        function init() {
+            renderStoredKeys();
+            renderTeachings();
+            if (activeKey) {
+                document.getElementById("apiKeyInput").value = activeKey;
+                const navKey = document.getElementById("navKeyDisplay");
+                navKey.textContent = activeKey.substring(0, 15) + "...";
+                navKey.style.display = "block";
+            }
+            selectEndpoint(document.querySelector(".tab.active"));
+        }
+        init();
     </script>
 </body>
 </html>
