@@ -60,7 +60,7 @@ function toBase64(bytes: Uint8Array): string {
   return btoa(binary);
 }
 
-async function uploadImageToSpace(host: string, imageUrl?: string, imageBase64?: string): Promise<string | null> {
+async function uploadImageToSpace(host: string, imageUrl?: string, imageBase64?: string): Promise<any> {
   try {
     let bytes: Uint8Array; const filename = "input.png";
     if (imageBase64) {
@@ -75,7 +75,17 @@ async function uploadImageToSpace(host: string, imageUrl?: string, imageBase64?:
     const up = await fetch(`https://${host}/gradio_api/upload?upload_id=${crypto.randomUUID()}`, { method: "POST", body: form });
     if (!up.ok) return null;
     const arr = await up.json();
-    return Array.isArray(arr) && arr.length ? arr[0] : null;
+    if (!Array.isArray(arr) || !arr.length) return null;
+    const path = arr[0];
+    return {
+      path,
+      url: `https://${host}/gradio_api/file=${path}`,
+      size: bytes.length,
+      orig_name: filename,
+      mime_type: "image/png",
+      is_stream: false,
+      meta: { _type: "gradio.FileData" }
+    };
   } catch { return null; }
 }
 async function submitJob(host: string, endpoint: string, data: any[]): Promise<any> {
@@ -172,16 +182,16 @@ async function textToVideo(base44: any, prompt: string, opts: any, budgetMs: num
 }
 async function imageToVideo(base44: any, prompt: string, opts: any, budgetMs: number): Promise<any> {
   const host = SPACES[0].host; const endpoint = "image_to_video";
-  let imgPath: string | null = null;
+  let imgFile: any = null;
   if (opts.image_url || opts.image_base64) {
-    imgPath = await uploadImageToSpace(host, opts.image_url, opts.image_base64);
-    if (!imgPath) return { status: "error", message: "ইমেজ আপলোড ব্যর্থ। valid image_url বা image_base64 দিন।" };
+    imgFile = await uploadImageToSpace(host, opts.image_url, opts.image_base64);
+    if (!imgFile) return { status: "error", message: "ইমেজ আপলোড ব্যর্থ। valid image_url বা image_base64 দিন।" };
   }
   const duration = clamp(opts.duration, 1, 8, 2);
   const width = round32(opts.width, 704);
   const height = round32(opts.height, 512);
   const neg = opts.negative_prompt || DEFAULT_NEG;
-  const data = [prompt || "make this image come alive, cinematic motion", neg, imgPath, null, height, width, "image-to-video", duration, 9, opts.seed ?? 42, true, 1, true];
+  const data = [prompt || "make this image come alive, cinematic motion", neg, imgFile, null, height, width, "image-to-video", duration, 9, opts.seed ?? 42, true, 1, true];
   const sub = await submitJob(host, endpoint, data);
   if (sub.error) return { status: "error", message: sub.error };
   const start = Date.now();
